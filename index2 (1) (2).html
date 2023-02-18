@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, user-scalable=yes">
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;500;700;900&display=swap');
+
+
+  /* ↓PC（横幅550px超）の場合 */
+  html{
+    /* 1rem = 100pxと定義 */
+    font-size: 100px;
+  }
+  body{
+    /*　基本のフォントサイズは14px */
+    font-size: 0.14rem;
+    font-family: 'Noto Sans JP', sans-serif !important;
+    letter-spacing: -0.005rem;
+    color: #6c6c6c;
+  }
+  h1{
+    /* 見出しは大きめの30px、パディングを20px*/
+    font-size: 0.3rem;
+    padding: 0.2rem;
+  }
+  p{
+    /* pはマージントップ40px */
+    margin-top: 0.4rem;
+  }
+  .widthGuide2 {
+    width: 100%;
+    max-width: 1.1rem;
+    min-width: 9rem;
+    padding: 0 0.2rem;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  /* ↓スマホ（横幅550px以下）の場合 */
+  @media screen and (max-width: 550px) {
+    html{
+      /* 1rem = 50pxと再定義 */
+      font-size: 50px;
+    }
+    body{
+      /* フォントサイズを少し小さく14pxに */
+      font-size : calc((0.16rem * 100 / 50) * 0.9)
+    }
+    h1{
+      /* 見出しのサイズを少し小さく27pxに */
+      font-size : calc((0.3rem  * 100 / 50) * 0.66)
+      /* パディングはPCの半分の10pxにしますが、ここで何も指定しなくても50px * 0.2rem = 10pxに自動で再計算されるはず */
+    }
+    p{
+    /* マージントップはPCの半分の20pxにしますが、ここで何も指定しなくても、50px * 0.4rem = 20pxに自動で算出されるはず */
+    }
+    .widthGuide2 {
+    width: 100%;
+    max-width: initial;
+    min-width: initial;
+    padding: 0 0.2rem;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+  }
+
+
+  div, table, th, td, h1, h2, h3, h4, h5, form, fieldset, a, p, button, legend, pre, code, blockquote, input, textarea, button, select, ul, li, ol, dd, dl, dt {
+    margin: 0;
+    padding: 0;
+  }
+
+  .title{
+    margin: 0 !important;
+    padding: 0.65rem 0 0.58rem;
+    text-align: center;
+  }
+
+  .title h1 {
+    display: block;
+    font-size: 0.34rem;
+    line-height: 0.59rem;
+    color: #000;
+    font-weight: 600;
+  }
+
+  #upload_form h2 {
+    font-size: 0.25rem;
+    color: #282828;
+    margin-bottom: 0.1rem;
+    font-weight: normal;
+  }
+
+  #wrap {
+    width: 100%;
+  }
+
+	.bubble {
+		z-index:100;
+		position: absolute;
+		left: 50%;
+		transform: translateX(-50%);
+		top: -0.5rem;
+		height: auto;
+		padding: 0.1rem 0.15rem;
+		background: #FFFFFF;
+		border-radius: 0.05rem;
+		border: #ccc solid 1px;
+		font-size: 0.14rem;
+		white-space: nowrap;
+		color: #e14846;
+		font-weight: bold;
+	}
+	
+	.bubble:after {
+		content: '';
+		position: absolute;
+		border-style: solid;
+		border-width: 0.1rem 0.1rem 0 0.085rem;
+		border-color: #FFFFFF transparent;
+		display: block;
+		width: 0;
+		z-index: 1;
+		bottom: -0.095rem; 
+		left: 50%;
+		transform: translateX(-50%);
+	}
+	
+	.bubble:before {
+		content: '';
+		position: absolute;
+		border-style: solid;
+		border-width: 0.1rem 0.1rem 0 0.085rem;
+		border-color: #bbb transparent;
+		display: block;
+		width: 0;
+		z-index: 0;
+		bottom: -0.11rem;
+		left: 50%;
+		transform: translateX(-50%);
+	}
+  
+  .tabs01 .tabBox {
+    background: #c7c7c7;
+    width: 100%;
+  
+  }
+  .tabs01 .tabBox {
+      position: relative;
+      padding: 0.18rem 0.19rem;
+      background-color: #f6f6f6;
+      border-top: 1px solid #dcdcdc;
+      border-bottom: 1px solid #dcdcdc;
+      box-sizing: border-box;
+  }
+
+  .tabs01 .tabbtn {
+    width: 100%;
+    display: flex;
+    margin: 0;
+  }
+
+  dl, ul, ol, menu, li {
+    list-style: none;
+  }
+
+  .tabs01 .tabbtn li {
+    position: relative;
+    font-size: 0.15rem;
+    line-height: 1.5;
+    font-weight: 500;
+    padding: 0 0.175rem;
+    color: #4d4d4d;
+    background: transparent;
+    cursor: pointer;
+  }
+  .tabs01 .tabbtn li.last {
+    background: transparent;
+    color: #e14846;
+  }
+
+  .tabs01 .tabsContents {
+    background: #f5f5f5;
+    padding: 0.3rem;
+  }
+
+  .tabs01 .tabbtn li.on:after {
+    position: absolute;
+    display: block;
+    content: '';
+    left:  0.175rem;
+    right:  0.175rem;
+    bottom: -0.01rem;
+    height: 0.01rem;
+    background-color: #444;
+  }
+
+  .tabs01 .tabsContents span {
+    display: block;
+    line-height: 0.24rem;
+  }
+
+  .tabs01 .tabsContents .margintop {
+    margin-top: 0.2rem;
+  }
+
+  .pinting_proc {
+    font-size: 0 !important;
+    padding: 0 0.1rem;
+  }
+
+  .pinting_proc li {
+    position: relative;
+    display: inline-block;
+    padding: 0 0.3rem;
+    width: 14.285%;
+    vertical-align: top;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .pinting_proc li span {
+    display: inline-block;
+    margin-top: 0.05rem;
+    font-size: 0.11rem !important;
+    line-height: 2;
+    font-weight: 500;
+    white-space: nowrap;
+    letter-spacing: -0.01rem;
+  }
+
+  .pinting_proc02 {
+    margin: 0 auto;
+    max-width: 7.67rem;
+    font-size: 0 !important;
+  }
+
+  .pinting_proc02 li {
+    position: relative;
+    display: inline-block;
+    padding: 0 0.3rem;
+    width: 20%;
+    vertical-align: top;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .pinting_proc02 li span {
+    display: inline-block;
+    margin-top: 0.05rem;
+    font-size: 0.11rem !important;
+    line-height: 2;
+    font-weight: 500;
+    white-space: nowrap;
+    letter-spacing: -0.01rem;
+  }
+
+  .pinting_proc02 li:before {
+    position: absolute;
+    content: '';
+    left: 0;
+    top: 40%;
+    margin-top: -0.09rem;
+    width: 0.08rem;
+    height: 0.13rem;
+    background: url(https://realfabric.jp/images/malgum_img/contents/img_printing_arr.png) no-repeat 50%;
+  }
+
+ .tabs01 .tabsContents .tabcons * {
+    font-size: 0.15rem;
+    color: #4d4d4d;
+    line-height: 0.3rem;
+  }
+
+  #upload_form{
+    display: block;
+    width: 100%;
+    padding: 0.7rem 0 0.6rem;
+    text-align: center;
+  }
+
+  .upload-box{
+    display: inline-block;
+    padding: 0 0.1rem;
+    font-size: 0.14rem;
+    width: 3.75rem !important;
+    height: 0.44rem !important;
+    line-height: 0.44rem !important;
+    border: 1px solid #eaeaea;
+    background: #fff;
+  } 
+
+#upload-input-form label {
+    display: inline-block;
+    margin-left: 0.1rem;
+    padding: 0 0.1rem;
+    font-size: 0.15rem;
+    width: 1.74rem;
+    height: 0.44rem;
+    line-height: 0.42rem;
+    vertical-align: middle;
+    background-color: #fdfdfd;
+    border: 1px solid #ebebeb;
+    text-align: center;
+    cursor: pointer;
+}
+
+#upload-input-form {
+  margin: 0.1rem 0;
+}
+
+.upload-name {
+    display: inline-block;
+    padding: 0 0.1rem;
+    font-size: 0.14rem;
+    width: 3.75rem !important;
+    height: 0.44rem !important;
+    line-height: 0.44rem !important;
+    border: 1px solid #eaeaea;
+    background: #fff;
+  }
+
+  #button2{
+    padding: 0.15rem 0.4rem;
+    background: #ccc;
+    color: #999;
+    display: block;
+    margin: 0.3rem auto;
+    border: 0 none;
+    cursor: pointer;
+  }
+
+  #button2.Active{
+    background: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+  }
+
+  .addfileInfoText {
+    padding-top: 0.07rem;
+    font-size: 0.15rem;
+    color: #4d4d4d;
+    line-height: 0.3rem;
+    text-align: center;
+  }
+
+  .fileInfo {
+    display: block;
+    padding: 0.25rem 0.2rem;
+    border: 1px solid #e0e0e0;
+  }
+
+  .fileInfo ul {
+    margin: 0;
+    padding: 0;
+  }
+
+  .fileInfo li {
+    position: relative;
+    padding-left: 0.1rem;
+    font-size: 0.13rem;
+    color: #969696;
+    line-height: 2;
+    margin: 0;
+    list-style: none;
+  }
+
+  .fileInfo strong {
+    color: #bb2323;
+  }
+
+  #upload_form label{
+    cursor: pointer;
+  }
+</style>
+<style>
+  #overlay{ 
+    position: fixed;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    height:100%;
+    display: none;
+    background: rgba(0,0,0,0.6);
+  }
+  .cv-spinner {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;  
+  }
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px #ddd solid;
+    border-top: 4px #2e93e6 solid;
+    border-radius: 50%;
+    animation: sp-anime 0.8s infinite linear;
+  }
+  @keyframes sp-anime {
+    100% { 
+      transform: rotate(360deg); 
+    }
+  }
+  .is-hide{
+    display:none;
+  }
+
+  .header-bar{
+    width: 100%;
+    background-color: #000;
+    height: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<div id="overlay">
+  <div class="cv-spinner">
+    <span class="spinner"></span>
+  </div>
+</div>
+
+<!-- <div class="header-bar"></div> -->
+
+<div id="wrap">
+
+  <div class="title">
+  <h1>テキスタイルプリントサービス for 楽天市場<br>オリジナルデザイン入稿サイト</h1>
+  </div>
+
+
+  <div id="contents">
+    <div class="widthGuide2">
+      <div class="tabs01">
+        <div class="tabBox">
+          <ul class="tabbtn">
+            <li class="on">製作過程</li>
+            <li class="">工程案内</li>
+            <li class="">品質のご案内</li>
+            <li class="">洗濯について</li>
+            <li>プリンティングガイド</li>
+            <li class="last">
+              <font style=" font-weight:bold;">! 製作時の注意事項</font>
+              <div class="bubble" style="display: block;">ご注文の前に必ずご確認ください。</div>
+            </li>
+          </ul>
+          <script>
+            var element = $(".bubble");
+            var shown = true;
+            setInterval(toggle, 500);
+          
+            function toggle() {
+              if(shown) {
+                element.hide();
+                shown = false;
+              } else {
+                element.show();
+                shown = true;
+              }
+            }
+          </script>
+          <div style="clear:both;"></div>
+        </div>
+        <div class="tabsContents">
+          <div id="con01" class="tabcons" style="display: block;">
+            <span>受注生産の商品であるため、決済完了後、約５営業日での出荷となります。</span>
+            <span>（土日・祝日を除く営業日基準。工場の混雑具合により多少出荷日程が前後する場合があります。）</span>
+            <span class="margintop" align="center">
+              <ul class="pinting_proc">
+                <li>
+                  <p class="img_box"><img src="/images/malgum_img/contents/img_printing_1.png" alt=""></p>
+                  <span>イメージアップロード</span>
+                </li>
+                <li>
+                  <p class="img_box"><img src="/images/malgum_img/contents/img_printing_2.png" alt=""></p>
+                  <span>プリントイメージ確認</span>
+                </li>
+                <li>
+                  <p class="img_box"><img src="/images/malgum_img/contents/img_printing_3.png" alt=""></p>
+                  <span>デザインキー発行</span>
+                </li>
+                <li>
+                  <p class="img_box"><img src="/images/malgum_img/contents/img_printing_4.png" alt=""></p>
+                  <span>楽天市場での注文</span>
+                </li>
+                <li>
+                  <p class="img_box"><img src="/images/malgum_img/contents/img_printing_5.png" alt=""></p>
+                  <span>プリント</span>
+                </li>
+                <li>
+                  <p class="img_box"><img src="/images/malgum_img/contents/img_printing_6.png" alt=""></p>
+                  <span>出荷</span>
+                </li>
+              </ul>
+            </span>
+          </div>
+          <div id="con02" class="tabcons" style="display: none;">
+            <span>最新のデジタルプリントと熟練した技術で、丁寧に製作させていただきます。</span>
+            <span class="margintop" align="center">
+              <ul class="pinting_proc02">
+                <li>
+                  <p class="img_box"><img src="/images/malgum_img/contents/info_print02_1.png" alt=""></p>
+                  <span>プリント</span>
+                </li>
+                <li>
+                  <p class="img_box"><img src="/images/malgum_img/contents/info_print02_2.png" alt=""></p>
+                  <span>発色</span>
+                </li>
+                <li>
+                  <p class="img_box"><img src="/images/malgum_img/contents/info_print02_3.png" alt=""></p>
+                  <span>水洗</span>
+                </li>
+                <li>
+                  <p class="img_box"><img src="/images/malgum_img/contents/info_print02_4.png" alt=""></p>
+                  <span>整理</span>
+                </li>
+                <li>
+                  <p class="img_box"><img src="/images/malgum_img/contents/info_print02_5.png" alt=""></p>
+                  <span>検品</span>
+                </li>
+              </ul>
+            </span>
+          </div>
+          <div id="con03" class="tabcons" style="display: none;">
+            <span>[洗濯堅牢度] シーチング：4-5 / オックスフォード：4-5 ※</span>
+            <span>[耐光堅牢度] シーチング：3-4 / オックスフォード：3-4 ※</span>
+            <span>[ホルムアルデヒド(乳幼児用品)] 基準値以下または未検出</span>
+            <span>・ベビー用品にも安心してご使用いただけます。</span>
+            <span>・「特定芳香族アミンを容易に生成するアゾ染料」は使用しておりません。</span>
+            <br>
+            <span>※堅牢度は5段階評価で「5」が最高です。</span>
+            <br>
+          </div>
+          <div id="con04" class="tabcons" style="display:none;">
+            <span>商品を洗濯の際にはたっぷりの水で洗い、すぐに洗濯機で充分に脱水して乾かしてください。</span>
+            <span>多少縮んだり色落ちすることがありますので、他の物と一緒に洗濯しないでください。</span>
+          </div>
+          <div id="con05" class="tabcons" style="display:none;">
+            5
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="upload_form">
+    <div style="padding-bottom: 25px;">
+      <h2>イメージ アップロード</h2>
+    </div>
+    <div id="upload-input-form">
+      <input class="upload-name" value="" disabled="disabled">
+      <label for="upload-file" style="background-color: #ccc; border-color: #ccc; color:#333; width:auto; padding:0 0.2rem;">ファイルを選択</label>
+      <!-- <input hidden type="file" id="upload-file" accept="image/png, image/jpeg, image/tiff, image/*,.psd" required> -->
+      <input hidden type="file" id="upload-file" accept="image/png, image/jpeg, image/tiff" required>
+    </div>
+    <div>
+      <label><input type="checkbox" id="copyrightok" class="copyrightok"> 製作時の注意事項を確認し、知的財産権を侵害しないことに同意します。</label>
+      <button id="button2">ファイルをアップロード</button>
+    </div>
+    <div class="addfileInfoText">ファイルをアップロードすると、無料でプリントイメージをご覧いただけます。<br>
+      <span style="color: #bb2323;cursor: pointer;">「製作時の注意事項」</span>を必ずご確認の上、<br>
+      修正の必要がない<strong style="color: #0070C0">完全データ</strong>でご注文をお願いいたします。<br>
+      (アップロードしたデザインは非公開です。)
+    </div>
+  </div>
+
+  <div class="fileInfo widthGuide2">
+    <ul>
+      <li>アップロード可能なファイル：<strong>jpg, png, tif</strong> <br>(お使いの回線によって、アップロードに時間が掛かることがあります。)</li>
+      <li>カラーモード：<strong>RGB</strong> <br>(CMYKのファイルはRGBに変換して、ご注文をお願いいたします。)</li>
+      <li>推奨解像度：<strong>150dpi</strong> <br><font style="background-color:#ffff00;">(その他の解像度の場合、サイズが150dpi基準に自動で変換されます。「イメージサイズ」で調節可能)</font></li>
+      <li>ファイル容量：100MB以内</li>
+      <li>デザインサイズ：縦は3ｍ以内(3ｍ以降はリピート)、横は生地の柄有効巾以内</li>
+      <li>ファイル保存期間：1ヶ月 (自動削除)
+      </li>
+      <li>デザインが著作権・肖像権を侵害する場合は製作不可</li>
+      </ul>
+  </div>
+
+
+
+
+</div>
+</body>
+
+<script>
+$(function(){
+	$(".tabs01 .tabbtn li").click(function(e) {
+        var thisNum = $(this).index()+1;
+		if(thisNum == "5"){
+			window.open("/bbs_detail.php?bbs_num=3&id=&tb=board_guide&pg=1","_blank");
+		}else if(thisNum == "6"){
+			window.open("/bbs_detail.php?bbs_num=98&id=&tb=board_notice&pg=1","_blank");
+		}else{
+			$(".tabs01 .tabbtn li").removeClass("on");
+			$(".tabs01 .tabbtn li").removeClass("onb");
+			$(".tabs01 .tabbtn li:nth-child("+(thisNum-1)+")").addClass("onb");
+			$(this).addClass("on");
+			$(".tabsContents .tabcons").css("display","none");
+			$("#con0"+thisNum).css("display","block");
+		}
+    });
+});
+
+document.getElementById("copyrightok").onchange = function() {
+	if($("#copyrightok").is(":checked") == true){
+    $('#button2').addClass('Active');
+  } else {
+    $('#button2').removeClass('Active');
+  }
+}
+
+</script>
+
+
+<script>
+document.getElementById("button2").onclick = async function() {
+
+	if($("#copyrightok").is(":checked") == true){
+	
+    var fileInput = document.getElementById('upload-file');
+
+    if (fileInput.files.length > 0) {
+      // 選択されたファイル情報を取得
+
+      $("#overlay").fadeIn(300);
+
+      var file = fileInput.files[0];
+      var type = file.type
+      
+      // step1: 取得した署名付きURLの取得＆変数（resSignedUrl）に代入
+      var res_json = await axios.get("https://2uyztj4gsa.execute-api.ap-northeast-1.amazonaws.com/v1/get-s3-up-presigned-url?type=" + type);
+      var resSignedUrl = res_json.data.body.url
+      var ID = res_json.data.body.ID
+
+      // step4: 取得した署名付きURLでS3へアップロード
+      const res = await axios.put(
+          resSignedUrl,
+          file,
+          {
+            headers: {
+              'Content-Type': file.type,
+            },
+          }
+        );
+
+        //2秒間隔でサムネイル画像の存在を確認し、確認できたら転送
+        var gazou = "https://test-pgws.s3.ap-northeast-1.amazonaws.com/thumbnails/" + ID + ".jpg";
+        const intervalId = setInterval(() =>{
+        if (is_file2(gazou)) {
+            console.log("存在");
+            location.href="https://s3-site-test-tomo.s3.ap-northeast-1.amazonaws.com/item-detail.html?id=" + ID
+        } else {
+            console.log("存在しない"); 
+        }}, 2000);
+
+        return;
+
+      } else {
+        alert("ファイルを選択してください。");		
+      }
+    } else {
+      alert("知的財産権を侵害しないことに同意するとアップロードが可能です。");
+    }
+}
+
+
+</script>
+
+<script>
+function is_file2(fp){
+var flg = null;
+$.ajax({
+    url: fp,
+    dataType: 'html',
+    cache: false,
+    async:false
+}).done(function(data) {
+    flg = true;
+})
+.fail(function(jqXHR, textStatus, errorThrown) {
+    flg = false;
+});
+return flg;
+}
+
+document.getElementById("upload-file").onchange = function(event) {
+    var file = event.target.files[0]
+        name = file.name,
+        size = file.size,
+        type = file.type,
+        errors = ''
+
+        // type = getImageFileType(event.target.result)
+
+    $('.upload-name').val(file.name);
+
+    //上限サイズは50MB
+    if (size > 50000000) {
+      errors += 'ファイルの上限サイズ50MBを超えています\n'
+    }
+    
+    //拡張子は .jpg .tifのみ許可
+    if (type != 'image/jpeg' && type != 'image/tiff' && type != 'image/png') {
+    // if (type != 'JPG' && type != 'PNG' && type != 'TIFF') {
+      errors += '.jpg .png .tifのいずれかのファイルのみ許可されています\n'
+    }
+
+    if (errors) {
+      //errorsが存在する場合は内容をalert
+      alert(errors)
+      //valueを空にしてリセットする
+      event.currentTarget.value = ''
+      $('.upload-name').val('');
+    }
+  }
+
+
+
+  // イメージのファイルタイプをバイナリーレベルで調べる
+  function getImageFileType(arrayBuffer) {
+    var ba = new Uint8Array(arrayBuffer);
+    var headerStr = "";
+    for (var i = 0; i < 10; i++) { // 始めの10個分を読む
+      headerHex += ba[i].toString(16); // 16進文字列で読む
+    }
+    var fileType = "unknown";
+    if (headerHex.indexOf("ffd8") != -1) { 
+        fileType = "JPG";
+    } else if (headerStr.indexOf("PNG") != -1) { 
+        fileType = "PNG";
+    } else if (headerStr.indexOf("II") != -1) { 
+        fileType = "TIFF";
+    } else if (headerStr.indexOf("8BPS") != -1) {
+        fileType = "PSD";
+    }
+    return fileType;
+  } 
+
+</script>
+</html>
