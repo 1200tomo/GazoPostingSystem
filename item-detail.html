@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <HEAD>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <title>キャンバス画像入稿</title>
+<style>
+            @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;500;700;900&display=swap');
+            body {
+            font-family: 'Noto Sans JP', sans-serif !important;
+            color: #404040;
+            }
+
+            .wrapper {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .main__wrapper {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: flex-start;
+                width: 80%;
+            }
+
+            @media screen and (max-width: 1024px) {
+            /* 1024pxまでの幅の場合に適用される */
+
+                .main__wrapper {
+                    width: 95%;
+                }
+
+            }
+
+            @media screen and (max-width: 768px) {
+                /* 768pxまでの幅の場合に適用される */
+
+                .main__wrapper {
+                    width: 100%;
+                    min-width: 1100px;
+                }
+
+                .wrapper {
+                    align-items: flex-start;
+                }
+
+            }
+
+            .contents__area {
+                padding-top: 15px;
+                display: flex;
+                flex-wrap: wrap;
+                min-width: 580px;
+                max-width: 580px;
+            }
+
+            .select__area {
+                width: 520px;
+                padding-left: 30px;
+            }
+
+            button {
+            color: #7e7e7e;
+            font-family: 'Noto Sans JP', sans-serif !important;
+            background: white;
+            border: solid 1px gray;
+            height: 30px;
+            cursor: pointer;
+            }
+
+            button:hover{
+                background: black;
+                color:white;
+            }
+
+            select {
+            font-family: 'Noto Sans JP', sans-serif !important;
+            color: #7e7e7e;
+            }
+
+            input {
+                font-family: 'Noto Sans JP', sans-serif !important;
+                color: #7e7e7e;
+            }
+
+            #pattern-canvas{
+                width: 560px;
+                height: 471.698px;
+                background-repeat: repeat;
+                background-position: 0px 0px;
+                background-size: 560px;
+            }
+
+            .expansion-btn {
+            width: 60px;
+            }
+
+            .shrink-btn {
+                width: 60px;
+            }
+
+            .rotate-btn {
+                width: 60px;
+            }
+
+            .bairitu-text {
+                width: 50px;
+                text-align: center;
+                border: 1px solid #dbdbdb;
+                height: 25px;
+                line-height: 25px;
+                padding-left: 3px;
+            }
+
+            .rotate-text {
+                width: 50px;
+                text-align: center;
+                border: 1px solid #dbdbdb;
+                height: 25px;
+                line-height: 25px;
+                padding-left: 3px;
+            }
+
+            .mini-wrapper {
+                border-bottom: solid 1px gainsboro;
+                padding-bottom: 15px;
+
+            }
+
+            .cloth-select {
+                width: 100%;
+                padding: 8px;
+            }
+
+            .repeat-select {
+                padding: 8px;
+
+            }
+
+            .length-input {
+                width: 100px;
+                text-align: center;
+                padding: 10px;
+                border: 0px;
+                background: #f9f9f9;
+            }
+
+            .arrow-btn {
+                height: 39px !important;
+                border: 0px !important;
+                background: #c6c6c6 !important;
+                color: white !important;
+            }
+
+            .stepbtn.Active{
+                background-color: black;
+                color: white;
+            }
+
+            .W-cm{
+                width: 50px;
+                border: 1px solid #dbdbdb;
+                height: 25px;
+                line-height: 25px;
+                padding-left: 3px;
+            }
+
+            .btn_apply{
+                background-color: black;
+                color: white;
+                width: 100px;
+            }
+
+            #zoom-Target {
+                background-position: 0px 0px;
+                float: right;
+                overflow: hidden;
+                z-index: 999;
+                transform: translateZ(0px);
+                opacity: 0.4;
+                zoom: 1;
+                width: 150px;
+                height: 200px;
+                background-color: white;
+                cursor: default;
+                border: 1px solid rgb(0, 0, 0);
+                background-repeat: repeat;
+                position: absolute;
+                left: 0px;
+                top: 0px;
+                display: none;
+            }
+
+            .zoom-div{
+                width: 420px;
+                height: 570px;
+                border: 3px solid #4e4e4e;
+                z-index: 1001;
+                position: absolute;
+                display: none;
+                background-size: 560px;
+                box-shadow: 0 10px 25px 0 rgb(0 0 0 / 50%);
+                border-radius: 10px;
+                margin-top: 15px;
+            }
+
+            .zoom-container{
+                display: flex;
+                position: relative;
+            }
+
+            #canvas-bottom{
+                width: 100%;
+                height: 50px;
+                z-index: 1000;
+            }
+            .title {
+                margin: 0 !important;
+                padding: 65px 0 58px;
+                text-align: center;
+            }
+            .footer {
+                margin: 0 !important;
+                padding: 65px 0 200px;
+                text-align: center;
+            }
+
+            .Publish_key_btn {
+                border: 1px solid #222;
+                background: #222;
+                color: #fff;
+                font-size: 18px;
+                font-weight: 500;
+                width: 100%;
+                height: 52px;
+            }
+
+
+            /*モーダル本体の指定 + モーダル外側の背景の指定*/
+            .modal-container{
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                text-align: center;
+                background: rgba(0,0,0,50%);
+                padding: 40px 20px;
+                overflow: auto;
+                opacity: 0;
+                visibility: hidden;
+                transition: .3s;
+                box-sizing: border-box;
+                z-index: 1500;
+            }
+
+            /*モーダル本体の擬似要素の指定*/
+            .modal-container:before{
+                content: "";
+                display: inline-block;
+                vertical-align: middle;
+                height: 100%;
+            }
+
+            /*モーダル本体に「active」クラス付与した時のスタイル*/
+            .modal-container.active{
+                opacity: 1;
+                visibility: visible;
+            }
+            
+            /*モーダル枠の指定*/
+            .modal-body{
+                position: relative;
+                display: inline-block;
+                vertical-align: middle;
+                max-width: 500px;
+                width: 90%;
+            }
+
+            /*モーダルを閉じるボタンの指定*/
+            .modal-close{
+                position: absolute;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                top: -40px;
+                right: -40px;
+                width: 40px;
+                height: 40px;
+                font-size: 40px;
+                color: #fff;
+                cursor: pointer;
+            }
+
+            /*モーダル内のコンテンツの指定*/
+            .modal-content{
+                background: #fff;
+                text-align: center;
+                padding: 30px;
+            }
+
+            .DesignKey-input {
+                width: 100%;
+                background: #f1f1f1;
+                border: 0;
+                padding: 10px;
+                font-size: 16px;
+                border-radius: 6px;
+            }
+
+            .preview-key-wrap {
+                margin-bottom: 40px;
+                position: relative;
+                margin-right: 20px;
+            }
+
+            .preview-btn-wrap {
+                text-align: right;
+                position: absolute;
+                right: -10px;
+                top: 0;
+                display: block;
+                width: 35px;
+                height: 100%;
+                margin-top: 3px;
+                cursor: pointer;
+            }
+
+        </style>
+    </HEAD>
+    <body>
+        <div class="wrapper">
+            <div class="title">
+                <h1>入稿デザイン プリントシミュレーター</h1>
+            </div>
+            <div class="main__wrapper">
+                <div class="contents__area">
+                    <svg id="measure" width="20px" height="20px" viewBox="0 0 20 20">
+                        <rect x="0" y="0" width="19" height="19" fill="black" />
+                        <text x="2" y="13.5" font-size="10" fill="white">CM</text>
+                    </svg>
+                    <svg id="W-measure" style="z-index:1000;" width="560px" height="20px" viewBox="0 0 560 20"></svg>
+                    <svg id="H-measure" style="z-index:1000;" width="20px" height="471.698px" viewBox="0 0 20 471.698"></svg>
+                    <div class="zoom-container">
+                        <div id="pattern-canvas"></div>
+                        <div id="zoom-Target"></div>
+                    </div>
+
+                    <style>
+                        #item-view-wrap {
+                            float: left;
+                            position: relative;
+                            overflow: hidden;
+                        }
+                        @media screen and (max-width: 834px){
+                            #item-view-wrap, .range, #space {
+                                width: 100%;
+                                padding: 2%;
+                            }
+                        }
+                        #item-view-wrap, .range, #space {
+                            width: 580px;
+                            object-fit: cover;
+                        }
+                        .item-mask {
+                            position: absolute;
+                            z-index: 10;
+                            width: 100%;
+                            height: 100%;
+                            pointer-events: none;
+                        }
+                        .item-view {
+                            overflow: hidden;
+                            max-width: 2000px;
+                            max-height: 2000px;
+                        }
+                        #kiji {
+                            position: relative;
+                            max-width: 100%;
+                            background-repeat: repeat;
+                            cursor: move;
+                        }
+                        #set_mask, #space {
+                            user-drag: none;
+                            -webkit-user-drag: none;
+                            -moz-user-select: none;
+                        }
+                    </style>
+
+                    <div id="item-view-wrap" style="display:none;">
+                        <img id="set_mask" class="item-mask" src="" style="display: block;" alt="mask">
+                        <section class="item-view" style="border:1px #ded7c6 solid;">
+                            <div id="kiji" style="">
+                                <img id="space" src="https://www.wsk.co.jp/wp-content/themes/wakayamasenko/img/designsite/item-mask-spacer.png" alt="space">
+                            </div>
+                        </section>
+                    </div>
+
+                    <div id="canvas-bottom">
+
+                        <style>
+                            .item-thumb{
+                                padding-top: 20px;
+                            }
+                            .item-thumb ul, .prevew-ul {
+                                overflow: hidden;
+                                width: 100%;
+                                list-style: none;
+                                margin: 15px 0 0;
+                                padding: 0;
+                                display: -webkit-box;
+                                display: -ms-flexbox;
+                                display: flex;
+                                -webkit-flex-wrap: wrap;
+                                -ms-flex-wrap: wrap;
+                                flex-wrap: wrap;
+                                -webkit-box-pack: justify;
+                                -webkit-justify-content: space-between;
+                                -ms-flex-pack: justify;
+                                justify-content: space-between;
+                            }
+                            .item-thumb li {
+                                width: 23%;
+                                padding: 0!important;
+                                transition: .3s;
+                                list-style: none;
+                                cursor: pointer;
+                                height: 23%;
+                                margin: 0;
+                                line-height: 0;
+                            }
+                            .item-thumb li img {
+                                max-width: 100%;
+                                width: 100%;
+                                height: 100%;
+                                margin: auto;
+                                object-fit: cover;
+                            }
+                            .item-thumb li:hover {
+                                filter: brightness(25%);
+                            }
+                        </style>
+                        <div class="item-thumb">
+                            <ul>
+                                <li style="background-size:50%;">
+                                    <img class="first-img" src="https://www.wsk.co.jp/wp-content/themes/wakayamasenko/img/designsite/item-mask-spacer.png" >
+                                </li>
+                                <li style="background-size:50%;">
+                                    <img src="https://www.wsk.co.jp/wp-content/themes/wakayamasenko/img/designsite/mask01.png" id="mask01" alt="クッション" data-shoki_mask_width_px="800" data-shoki_mask_item_px="586" data-mask_cm="45">
+                                </li>
+                                <li style="background-size:50%;">
+                                    <img src="https://www.wsk.co.jp/wp-content/themes/wakayamasenko/img/designsite/mask03.png" id="mask03" alt="カバン" data-shoki_mask_width_px="800" data-shoki_mask_item_px="525" data-mask_cm="36">
+                                </li>
+                                <li style="background-size:40%;">
+                                    <img src="https://www.wsk.co.jp/wp-content/themes/wakayamasenko/img/designsite/mask05.png" id="mask05" alt="ポーチ" data-shoki_mask_width_px="800" data-shoki_mask_item_px="710" data-mask_cm="22">
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="select__area" style="z-index:1000;">
+                    <div style="display:none;">
+                        <img id="thumnail-image" src="" width="300">
+                        <p><input class="oroginal-data-size-W-px" type="text" value="" /></p>
+                        <p><input class="oroginal-data-size-H-px" type="text" value="" /></p>
+                        <p><input class="oroginal-data-size-W-cm" type="text" value="" /></p>
+                        <p><input class="oroginal-data-size-H-cm" type="text" value="" /></p>
+                        <p><input class="shoki_mask_width_px" type="text" value="" /></p>
+                        <p><input class="shoki_maskItem_width_px" type="text" value="" /></p>
+                        <p><input class="shoki_maskItem_width_cm" type="text" value="" /></p>
+                    </div>
+                    <div class="zoom-div"></div>
+                    <div class="mini-wrapper">
+                        <p>生地の選択</p>
+                        <p><select class="cloth-select" onchange="changeCloth();">
+                                <option value="110" data-mw="110" selected>綿100% 47.5"2016オックス (柄有効幅:110cm)</option>
+                                <option value="150" data-mw="150">綿100% 63"オックス (柄有効幅:150cm)</option>
+                            </select>
+                        </p>
+                    </div>
+                    <div class="mini-wrapper">
+                        <p>生地のサイズ</p>
+                        <p><input style="display: none;" class="length-select" type="text" value="100" /></p>
+                        <table cellspacing="0" cellpadding="0" border="0" style="margin:5px;">
+                            <tbody>
+                                <tr>                            
+                                    <td style="padding-right:5px;"><input type="checkbox" class="size-chbx"  id="Size_sample" checked onclick=""></td>                    
+                                    <td>サンプル (50cm x 50cm)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table cellspacing="0" cellpadding="0" border="0" style="margin:5px;">
+                            <tbody>
+                                <tr>                            
+                                    <td style="padding-right:5px;"><input type="checkbox" class="size-chbx" id="Size_actual" onclick=""></td>                    
+                                    <td class="length-text">1m (110cm x 100cm)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p><button class="arrow-btn arrow-down-btn">◂</button><input class="length-input" type="number" value="1" step="0.5" min="0.5" /><button class="arrow-btn arrow-up-btn">▸</button></p>
+                    </div>
+                    <div class="mini-wrapper">
+                        <p>レイアウト</p>
+                        <p><button class="stepbtn Active" value="basic">正送り</button>
+                        <button class="stepbtn" value="mirror">鏡面送り</button>
+                        <button class="stepbtn" value="tate_half">縦ハーフステップ</button>
+                        <button class="stepbtn" value="yoko_half">横ハーフステップ</button></p>
+                        <input style="display: none;" class="step-text sb-btn" type="text" value="" />
+                    </div>
+                    <div class="mini-wrapper">
+                        <p>イメージサイズ</p>
+                        <table cellpadding="0" cellspacing="0" width="100%">
+                            <tbody>
+                                <tr>
+                                    <td class="font_tahoma">W <input class="W-cm" type="text" value=""/>cm x H <span class="H-cm"></span>cm</td>
+                                    <td style="text-align: right;"><button class="btn_apply">適用する</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="display: none;">
+                            <input class="bairitu-text" type="text" value="0%" readonly="readonly"/>
+                            <input class="bairitu-number" type="text" value="0" />
+                        </p>
+                    </div>
+                    <div class="mini-wrapper">
+                        <p>回転</p>
+                        <p><button class="rotate-btn">回転</button>
+                            <input type="text" class="rotate-text" value="0°" readonly="readonly">
+                            <input style="display: none;" type="text" class="rotate-number sb-btn" value="0">
+                        </p>
+                    </div>
+                    <div class="mini-wrapper">
+                        <p></p>
+                        <button class="Publish_key_btn modal-open">デザインキー発行</button>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+            </div>
+        </div>
+
+        <div class="modal-container">
+            <div class="modal-body">
+                <div class="modal-close">×</div>
+                <div class="modal-content">
+                <h2>デザインキー</h2>
+                <div class="preview-key-wrap">
+                    <input type="text" value="" class="DesignKey-input" onclick="this.select(0,this.value.length)" readonly="readonly" >
+                    <div class="preview-btn-wrap">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="humbleicons hi-documents"><path xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-linejoin="round" stroke-width="2" d="M13 3v7h7M6 7H5a1 1 0 00-1 1v12a1 1 0 001 1h9a1 1 0 001-1v-1M8 4v12a1 1 0 001 1h10a1 1 0 001-1V9.389a1 1 0 00-.263-.676l-4.94-5.389A1 1 0 0014.06 3H9a1 1 0 00-1 1z"/></svg>
+                    </div>
+                </div>
+                <div style="text-align: left;margin-bottom: 40px;">
+                    上記デザインキーをコピーし、楽天市場商品ページの【デザインキー欄】に貼り付けてください。
+                </div>
+
+            </div>
+            </div>
+        </div>
+
+
+    <script>
+        $(".preview-btn-wrap").on("click", function () {
+
+            var DesignKey = $(".DesignKey-input").val();
+
+            $(".DesignKey-input").select();
+            document.execCommand("copy");
+
+            alert("デザインキーをコピーしました。");
+
+        });
+
+        $(".item-thumb li img").on("click", function () {
+
+            $("#item-view-wrap").css("display", "block");
+
+            var shoki_mask_width_px = $(this).data("shoki_mask_width_px");
+            var shoki_maskItem_width_px = $(this).data("shoki_mask_item_px");
+            var shoki_maskItem_width_cm = $(this).data("mask_cm");
+
+            $(".shoki_mask_width_px").val(shoki_mask_width_px);
+            $(".shoki_maskItem_width_px").val(shoki_maskItem_width_px);
+            $(".shoki_maskItem_width_cm").val(shoki_maskItem_width_cm);
+
+            var web_mask_width_px = $("#set_mask").width();
+            var web_Pattern_width_cm = $(".W-cm").val();
+            var web_maskItem_width_px = (web_mask_width_px * Number(shoki_maskItem_width_px)) / Number(shoki_mask_width_px);
+            var web_Pattern_width_px = (web_mask_width_px *  Number(web_Pattern_width_cm)) / ((web_mask_width_px *  Number(shoki_maskItem_width_cm)) / web_maskItem_width_px);
+
+            var mask_img_path = $(this).attr("src");
+            
+            $("#W-measure").attr("display", "none");
+            $("#H-measure").attr("display", "none");           
+            $("#measure").attr("display", "none"); 
+            $(".zoom-container").css("display", "none");        
+
+            $("#set_mask").attr("src", mask_img_path);
+            $("#kiji").css("background-size", web_Pattern_width_px);  
+
+            generatePatternCanvas();
+            generateMeasure();
+
+        });
+
+        $(".item-thumb li img.first-img").on("click", function () {
+
+            $("#item-view-wrap").css("display", "none");
+
+            $("#W-measure").attr("display", "block");
+            $("#H-measure").attr("display", "block");           
+            $("#measure").attr("display", "block"); 
+            $(".zoom-container").css("display", "block");   
+
+            generatePatternCanvas();
+            generateMeasure();
+
+        });
+
+
+        // window.addEventListener('DOMContentLoaded', function(){
+        $(function() {
+        
+            //ドラッグフラグ
+            var drag_flg = false;
+            //マウスダウンの位置
+            var pos1;
+            var pos2;
+            //要素位置の修正値
+            var posX1;
+            var posY1;
+        
+            //要素内でマウスボタンが押された場合
+            $("#kiji").mousedown(function(evt1) {
+        
+                //ドラッグ判定（ドラッグしてない場合）
+                if(drag_flg == false) {
+
+                    //要素の位置取得
+                    pos1 = $("#kiji").position();
+                    //要素位置を取得して修正値を計算
+                    posX1 = evt1.clientX - pos1.left;
+                    posY1 = evt1.clientY - pos1.top;
+        
+                    //ドラッグ中にする
+                    drag_flg = true;
+                //ドラッグ中の場合
+                } else if(drag_flg == true) {
+        
+                    //要素のドラッグを解除
+                    drag_flg = false;
+                }
+            });
+        
+            //要素上でマウスボタンが離された場合
+            $("#kiji").mouseup(function() {
+                //要素のドラッグを解除
+                drag_flg = false;
+            });
+            
+            $('#item-view-wrap').on('mouseleave', function() {
+                drag_flg = false;
+            })	
+
+            //ドキュメント上でマウスポインタが動いた場合
+            $(document).mousemove(function(evt2) {
+                //ドラッグ中の場合
+                if(drag_flg == true) {
+                    //要素位置をCSSで設定
+                    $("#kiji").css("background-position-x",(evt2.clientX - posX1));
+                    $("#kiji").css("background-position-y",(evt2.clientY - posY1));
+                }
+            });
+        });
+
+
+
+        $(function(){
+
+            //要素の指定
+            var ZoomTarget=$("#zoom-Target");
+            var off = $('.zoom-container').offset();
+            var PatternContent = $('#pattern-canvas');
+
+            //mousemoveイベント
+            $('.zoom-container').on("mousemove",function(e){
+
+                    //ZoomTargetの左上の絶対座標を計算
+                    var x=e.clientX - off.left + $(window).scrollLeft() - ZoomTarget.width() / 2;
+                    var y=e.clientY - off.top  + $(window).scrollTop() - ZoomTarget.height() / 2;
+
+                    if (x < 0) {
+                        x=0;
+                    }
+
+                    if (y < 0) {
+                        y=0;
+                    }         
+                    
+                    if (x > PatternContent.width()-ZoomTarget.width() - 1) {
+                        x = PatternContent.width()-ZoomTarget.width() - 1 ;
+                    }
+
+                    if (y > PatternContent.height()-ZoomTarget.height() - 1) {
+                        y = PatternContent.height()-ZoomTarget.height() - 1 ;
+                    }
+
+
+                    //ZoomTargetの「top/left」を書き換える
+                    ZoomTarget.css({
+                        "top":y+"px",
+                        "left":x+"px"
+                    });
+
+                    //ZoomTargetの「background-position」を書き換える
+                    var ratio3 = Number($('.zoom-div').css('background-size').replace("px","")) / Number(PatternContent.css('background-size').replace("px",""))
+                    $('.zoom-div').css('background-position-x', -1 * x * ratio3 + "px") 
+                    $('.zoom-div').css('background-position-y', -1 * y * ratio3 + "px") 
+
+            });
+
+            // マウスポインターが「.zoom-container」に乗った時の動作
+            $('.zoom-container').on("mouseover",function(){ 
+                ZoomTarget.css('display', 'block');
+                $('.zoom-div').css('display', 'block');
+
+            });
+
+            // マウスポインターが「.zoom-container」から外れた時の動作
+            // 「.zoom-container」の周囲要素のz-indexを当該要素のz-indexより高く設定しておく。
+            $('.zoom-container').mouseout(function() {
+                ZoomTarget.css('display', 'none');
+                $('.zoom-div').css('display', 'none');
+            });
+
+
+
+            //「.zoom-container」要素上でのマウスホイールイベント
+            var mousewheelevent = 'onwheel' in document ? 'wheel' : 'onmousewheel' in document ? 'mousewheel' : 'DOMMouseScroll';
+
+            $('.zoom-container').on(mousewheelevent,function(e){
+
+                var ratio =  ZoomTarget.height() / ZoomTarget.width()
+
+                e.preventDefault();
+                var delta = e.originalEvent.deltaY ? -(e.originalEvent.deltaY) : e.originalEvent.wheelDelta ? e.originalEvent.wheelDelta : -(e.originalEvent.detail);
+                if (delta < 0){
+
+                    if (ZoomTarget.width() > 5) {
+
+                        ZoomTarget.width(ZoomTarget.width() - 5);
+                        ZoomTarget.height(ZoomTarget.width() * ratio);
+
+                        var ratio2 = Number(PatternContent.css('background-size').replace("px","")) / ZoomTarget.width()
+                        var t_ratio = $('.zoom-div').width() * ratio2
+                        $('.zoom-div').css('background-size',t_ratio) 
+
+
+                        var x = Number(ZoomTarget.css('left').replace("px","")) + 5 / 2;
+                        var y = Number(ZoomTarget.css('top').replace("px","")) + (5 * ratio) / 2;
+
+                        if (x < 0) {
+                        x=0;
+                        }
+
+                        if (y < 0) {
+                            y=0;
+                        }         
+                        
+                        if (x > PatternContent.width()-ZoomTarget.width() - 1) {
+                            x = PatternContent.width()-ZoomTarget.width() - 1 ;
+                        }
+
+                        if (y > PatternContent.height()-ZoomTarget.height() - 1) {
+                            y = PatternContent.height()-ZoomTarget.height() - 1 ;
+                        }
+
+                        ZoomTarget.css({
+                            "top":y+"px",
+                            "left":x+"px"
+                        });
+
+                        //カーソルの座標位置を取得
+                        var ratio3 = Number($('.zoom-div').css('background-size').replace("px","")) / Number(PatternContent.css('background-size').replace("px",""))
+                        $('.zoom-div').css('background-position-x', -1 * x * ratio3 + "px") 
+                        $('.zoom-div').css('background-position-y', -1 * y * ratio3 + "px") 
+
+                    }
+
+                } else {
+
+                    if (ZoomTarget.height() < PatternContent.height()-5) {
+
+                        ZoomTarget.width(ZoomTarget.width() + 5);
+                        ZoomTarget.height(ZoomTarget.width() * ratio);
+
+                        var ratio2 = Number(PatternContent.css('background-size').replace("px","")) / ZoomTarget.width()
+                        var t_ratio = $('.zoom-div').width() * ratio2
+                        $('.zoom-div').css('background-size',t_ratio) 
+
+                        var x = Number(ZoomTarget.css('left').replace("px","")) - 5 / 2;
+                        var y = Number(ZoomTarget.css('top').replace("px","")) - (5 * ratio) / 2;
+
+                        if (x < 0) {
+                        x=0;
+                        }
+
+                        if (y < 0) {
+                            y=0;
+                        }         
+                        
+                        if (x > PatternContent.width()-ZoomTarget.width() - 1) {
+                            x = PatternContent.width()-ZoomTarget.width() - 1 ;
+                        }
+
+                        if (y > PatternContent.height()-ZoomTarget.height() - 1) {
+                            y = PatternContent.height()-ZoomTarget.height() - 1 ;
+                        }
+
+                        ZoomTarget.css({
+                            "top":y+"px",
+                            "left":x+"px"
+                        });
+
+                        var ratio3 = Number($('.zoom-div').css('background-size').replace("px","")) / Number(PatternContent.css('background-size').replace("px",""))
+                        $('.zoom-div').css('background-position-x', -1 * x * ratio3 + "px") 
+                        $('.zoom-div').css('background-position-y', -1 * y * ratio3 + "px") 
+
+                    }
+
+                }
+            });
+        });
+
+
+
+
+        $(async function() {
+            var url = getParam('id');
+
+            $('.DesignKey-input').val(url);
+
+            var thumbnail_path = 'https://test-pgws.s3.ap-northeast-1.amazonaws.com/thumbnails/' + url + '_view.jpg'
+            $('#thumnail-image').attr('src', thumbnail_path);
+            $(".item-thumb li").css("background-image","url(" + thumbnail_path + ")");
+            $("#kiji").css("background-image","url(" + thumbnail_path + ")");         
+
+            var search_Flg = 'yes'
+            var submit_url = 'https://k96wvxchw9.execute-api.ap-northeast-1.amazonaws.com/v1/?id=' + url + '&SearchFlg=' + search_Flg
+
+            var res_json = await axios.get(submit_url);
+            console.log(res_json);
+
+            var Ori_W = res_json.data.body.res_OriginalDataWidthPx;
+            var Ori_H = res_json.data.body.res_OriginalDataHeightPx;
+            $('.oroginal-data-size-W-px').val(Ori_W);
+            $('.oroginal-data-size-H-px').val(Ori_H);
+
+            var Pri_W_cm = roundDecimal(Ori_W / 150 * 2.54,1)
+            var Pri_H_cm = roundDecimal(Ori_H / 150 * 2.54,1)
+            $('.oroginal-data-size-W-cm').val(Pri_W_cm);
+            $('.oroginal-data-size-H-cm').val(Pri_H_cm);
+
+            var layout = res_json.data.body.res_Layout;
+            $('.step-text').val(layout);
+
+            $('.stepbtn').removeClass("Active");
+            $("[value='"+ layout +"']").addClass("Active");
+
+            var angle = res_json.data.body.res_Rotate;
+            $('.rotate-text').val(angle + '°');
+            $('.rotate-number').val(angle);
+
+            generatePatternCanvas();
+            generateMeasure();
+            showDataSize();
+
+            var W_cm = res_json.data.body.res_TargetWidthCm;
+            $('.W-cm').val(W_cm);
+            $('.btn_apply').click();
+
+        });
+
+
+        $('.stepbtn').on("click", function() {
+            $('.step-text').val($(this).val()).change();
+        });
+
+        $('.rotate-btn').on("click", function() {
+            var rotate_number = Number($('.rotate-number').val());
+
+            if (rotate_number < 270) {
+                rotate_number = rotate_number + 90;
+            } else {
+                rotate_number = 0;
+            }
+
+            $('.rotate-text').val(rotate_number + '°');
+            $('.rotate-number').val(rotate_number).change();
+
+        });
+
+        $('.sb-btn').on("change", async function() {
+
+            var Layout_pattern = $('.step-text').val();
+            var rotate_angle = $('.rotate-number').val();
+            var id = getParam('id');
+            var Image_edit_flg = 'yes'
+            var search_Flg = 'no'
+
+            var submit_url = 'https://k96wvxchw9.execute-api.ap-northeast-1.amazonaws.com/v1/?id=' + id + '&layout=' + Layout_pattern + '&rotate=' + rotate_angle + '&ImgEditFlg=' + Image_edit_flg + '&SearchFlg=' + search_Flg
+
+            var res_json = await axios.get(submit_url);
+
+            var url = $("#thumnail-image").attr("src");
+            $("#thumnail-image").attr("src", url + `?v=${Math.random()}`);
+            $(".item-thumb li").css("background-image","url(" +  url + `?v=${Math.random()}` + ")");
+            $("#kiji").css("background-image","url(" +  url + `?v=${Math.random()}` + ")");    
+
+            generatePatternCanvas();
+
+        });
+
+
+        function showDataSize() {
+            let W_px = $('.oroginal-data-size-W-px').val();
+            let H_px = $('.oroginal-data-size-H-px').val();
+            let W_cm = roundDecimal(W_px / 150 * 2.54, 1);
+            let H_cm = roundDecimal(H_px / 150 * 2.54, 1);
+            $('.W-cm').val(W_cm);
+            $('.H-cm').text(H_cm);
+        }
+        
+
+        $('.size-chbx').on("click", function() {
+            $('.size-chbx').prop('checked', false);
+            $(this).prop('checked', true);
+            generatePatternCanvas();
+            generateMeasure();
+        });
+
+
+        $('.btn_apply').on("click", async function() {
+            let original_W_cm = $('.oroginal-data-size-W-cm').val();
+            let W_cm = $('.W-cm').val();
+
+            let scale = W_cm / original_W_cm ;
+            original_H_cm = roundDecimal($('.oroginal-data-size-H-cm').val() * scale, 1);
+            $('.H-cm').text(original_H_cm);
+
+            let B_number = roundDecimal(scale * 100 - 100, 1); 
+            $('.bairitu-number').val(B_number);
+            $('.bairitu-text').val(B_number + '%');
+
+            generatePatternCanvas();
+            generateMeasure();
+
+            var Target_Ratio = Number($('.bairitu-number').val()) + 100;
+            var Target_W_cm = $('.W-cm').val();
+            var Target_H_cm = $('.H-cm').text();
+            var id = getParam('id');
+            var Image_edit_flg = 'no'
+            var search_Flg = 'no'
+
+            var submit_url = 'https://k96wvxchw9.execute-api.ap-northeast-1.amazonaws.com/v1/?id=' + id + '&Tratio=' + Target_Ratio + '&TwidthCM=' + Target_W_cm + '&TheightCM=' + Target_H_cm + '&ImgEditFlg=' + Image_edit_flg + '&SearchFlg=' + search_Flg
+
+            var res_json = await axios.get(submit_url);
+
+            
+        });
+
+
+        $('.stepbtn').on("click", function() {
+            $('.stepbtn').removeClass("Active");
+            $(this).addClass("Active");
+        });
+
+
+        $('.arrow-down-btn').on("click", function() {
+            var length = Number($('.length-input').val());
+            if (length >= 1) {
+                length = length - 0.5;
+            } else {}
+            $('.length-input').val(length).change();
+        });
+
+
+        $('.arrow-up-btn').on("click", function() {
+            var length = Number($('.length-input').val()) + 0.5;
+            $('.length-input').val(length).change();
+        });
+
+
+        $('.length-input').on("change", function() {
+            var length = Number($('.length-input').val()) * 100;
+            $('.length-select').val(length).change();
+        });
+
+
+        $('.length-select').on("change", function() {
+            var length = $('.length-select').val();
+            var Real_canvas_gara_W = $(".cloth-select").val();
+            $(".length-text").text(length / 100 + 'm (' + Real_canvas_gara_W + 'cm x ' + length + 'cm)');
+            generatePatternCanvas();
+            generateMeasure();
+        });
+
+
+        function changeCloth() {
+            var length = $('.length-select').val();
+            var Real_canvas_gara_W = $(".cloth-select").val();
+            $(".length-text").text(length / 100 + 'm (' + Real_canvas_gara_W + 'cm x ' + length + 'cm)');
+            generatePatternCanvas();
+            generateMeasure();
+        }
+
+
+        // 切り捨て
+        function floorDecimal(value, n) {
+            return Math.floor(value * Math.pow(10, n) ) / Math.pow(10, n);
+        }
+        
+        // 切り上げ
+        function ceilDecimal(value, n) {
+            return Math.ceil(value * Math.pow(10, n) ) / Math.pow(10, n);
+        }
+        
+        // 四捨五入
+        function roundDecimal(value, n) {
+            return Math.round(value * Math.pow(10, n) ) / Math.pow(10, n);
+        }
+        
+
+        function  generatePatternCanvas() {
+            var url =  $('#thumnail-image').attr('src');
+            let elem = document.getElementById("pattern-canvas");
+            elem.style.backgroundImage = "url( " + url + " )";
+
+            let canvas_cm_W;
+            if ($('#Size_sample').prop('checked') == true){
+                canvas_cm_W = 50;
+            } else if ($('#Size_actual').prop('checked') == true) {
+                canvas_cm_W = $(".cloth-select option:selected").data("mw");
+            } else{}
+
+            let canvas_px_W = document.getElementById('pattern-canvas').clientWidth;
+            let Resolution = 150;
+
+
+            var Rotate_angle = $('.rotate-number').val();
+            if (Rotate_angle == '0'){
+                var moto_data_px_W = $('.oroginal-data-size-W-px').val();
+                var web_Pattern_width_cm = $(".W-cm").val();
+            } else if (Rotate_angle == '90') {
+                var moto_data_px_W = $('.oroginal-data-size-H-px').val();
+                var web_Pattern_width_cm = $(".H-cm").text();
+            } else if (Rotate_angle == '180') {
+                var moto_data_px_W = $('.oroginal-data-size-W-px').val();
+                var web_Pattern_width_cm = $(".W-cm").val();              
+            } else if (Rotate_angle == '270') {
+                var moto_data_px_W = $('.oroginal-data-size-H-px').val();
+                var web_Pattern_width_cm = $(".H-cm").text();
+            }
+
+            
+            let data_cm_W = moto_data_px_W / Resolution * 2.54;
+            let data_px_W = (data_cm_W * canvas_px_W) / canvas_cm_W ;
+
+            let scale = 1 + Number($('.bairitu-number').val() / 100);
+
+
+            var Layout_pattern = $('.step-text').val();
+            if (Layout_pattern == 'basic'){
+                elem.style.backgroundSize = data_px_W * scale + 'px';
+            } else if (Layout_pattern == 'mirror') {
+                elem.style.backgroundSize = (data_px_W * 2 ) * scale + 'px';
+                web_Pattern_width_cm = web_Pattern_width_cm * 2;
+            } else if (Layout_pattern == 'tate_half') {
+                elem.style.backgroundSize = (data_px_W * 2 ) * scale + 'px';
+                web_Pattern_width_cm = web_Pattern_width_cm * 2;
+            } else if (Layout_pattern == 'yoko_half') {
+                elem.style.backgroundSize = data_px_W * scale + 'px';
+            }
+
+            let canvas_cm_H
+            if ($('#Size_sample').prop('checked') == true){
+                canvas_cm_H = 50;
+            } else if ($('#Size_actual').prop('checked') == true) {
+                canvas_cm_H = $('.length-select').val();
+                if (canvas_cm_H > 500) {
+                        canvas_cm_H = 500;
+                } else {}
+            } else{}
+                let canvas_px_H = (canvas_px_W * canvas_cm_H) / canvas_cm_W;
+                $('#pattern-canvas').css('height', canvas_px_H);
+
+
+            $('.zoom-div').css('background-image', "url( " +  url + " )");
+            $('.zoom-div').css('background-size', Number($('#pattern-canvas').css('background-size').replace("px","")));
+
+
+            var ratio2 = Number($('#pattern-canvas').css('background-size').replace("px","")) / $("#zoom-Target").width()
+            var t_ratio = $('.zoom-div').width() * ratio2
+            $('.zoom-div').css('background-size',t_ratio) 
+
+
+            var ratio =  $("#zoom-Target").height() / $("#zoom-Target").width()
+            var x = Number($("#zoom-Target").css('left').replace("px","")) - 5 / 2;
+            var y = Number($("#zoom-Target").css('top').replace("px","")) - (5 * ratio) / 2;
+
+            var ratio3 = Number($('.zoom-div').css('background-size').replace("px","")) / Number($('#pattern-canvas').css('background-size').replace("px",""))
+            $('.zoom-div').css('background-position-x', -1 * x * ratio3 + "px") 
+            $('.zoom-div').css('background-position-y', -1 * y * ratio3 + "px") 
+
+            //マスク画像下のパターン画像のサイズ計算
+            // web_Pattern_width_cm はこの関数内の上のコードに入ってる
+            var shoki_mask_width_px = $(".shoki_mask_width_px").val();
+            var shoki_maskItem_width_px = $(".shoki_maskItem_width_px").val();
+            var shoki_maskItem_width_cm = $(".shoki_maskItem_width_cm").val();
+            var web_mask_width_px = $("#set_mask").width();
+            var web_maskItem_width_px = (web_mask_width_px * Number(shoki_maskItem_width_px)) / Number(shoki_mask_width_px);
+            var web_Pattern_width_px = (web_mask_width_px *  Number(web_Pattern_width_cm)) / ((web_mask_width_px *  Number(shoki_maskItem_width_cm)) / web_maskItem_width_px);
+            $("#kiji").css("background-size", web_Pattern_width_px);  
+
+
+            }
+
+
+        function generateMeasure(){
+            var svg_remove1 = document.getElementById('W-measure');
+            while (svg_remove1.firstChild)
+            svg_remove1.removeChild(svg_remove1.firstChild);
+
+            var svg_remove2 = document.getElementById('H-measure');
+            while (svg_remove2.firstChild)
+            svg_remove2.removeChild(svg_remove2.firstChild);
+
+            if ($('#Size_sample').prop('checked') == true){
+                var Real_canvas_W = 50;
+            } else if ($('#Size_actual').prop('checked') == true) {
+                var Real_canvas_W = $(".cloth-select option:selected").data("mw");
+            } else{}
+
+            var Web_canvas_W = $("#pattern-canvas").width();
+
+            var cm_10_w_px = Web_canvas_W / (Real_canvas_W / 10);
+            var cm_10_y1_px = 0;
+            var cm_10_y2_px = 20;
+
+            svg1 = document.getElementById('W-measure');
+            line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line1.setAttribute('x1', 0);
+            line1.setAttribute('y1', cm_10_y1_px);
+            line1.setAttribute('x2', Web_canvas_W);
+            line1.setAttribute('y2', cm_10_y1_px);
+            line1.setAttribute('stroke', 'black');
+            svg1.appendChild(line1);
+
+            svg1 = document.getElementById('W-measure');
+            line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line1.setAttribute('x1', 0);
+            line1.setAttribute('y1', cm_10_y2_px);
+            line1.setAttribute('x2', Web_canvas_W);
+            line1.setAttribute('y2', cm_10_y2_px);
+            line1.setAttribute('stroke', 'black');
+            svg1.appendChild(line1);
+
+            let x = 0;
+            while (x < Web_canvas_W) {
+                svg1 = document.getElementById('W-measure');
+                line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line1.setAttribute('x1', x);
+                line1.setAttribute('y1', cm_10_y1_px);
+                line1.setAttribute('x2', x);
+                line1.setAttribute('y2', cm_10_y2_px);
+                line1.setAttribute('stroke', 'black');
+                svg1.appendChild(line1);
+                x += cm_10_w_px;
+            };
+
+            var cm_10_y_px = 9;
+            var cm_10_fontsize = 9;
+            var cm_10_text = 0;
+
+            let t = 0;
+            while (t < Web_canvas_W) {
+                svg1 = document.getElementById('W-measure');
+                line1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                line1.setAttribute('x', t + 2);
+                line1.setAttribute('y', cm_10_y_px);
+                line1.setAttribute('font-size', cm_10_fontsize);
+                line1.textContent = cm_10_text;
+                svg1.appendChild(line1);
+                cm_10_text += 10;
+                t += cm_10_w_px;
+            };
+
+            var cm_5_w_px = Web_canvas_W / (Real_canvas_W / 5);
+            var cm_5_y1_px = 11;
+            var cm_5_y2_px = 20;
+
+            let x2 = 0;
+            while (x2 < Web_canvas_W) {
+                svg2 = document.getElementById('W-measure');
+                line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line2.setAttribute('x1', x2);
+                line2.setAttribute('y1', cm_5_y1_px);
+                line2.setAttribute('x2', x2);
+                line2.setAttribute('y2', cm_5_y2_px);
+                line2.setAttribute('stroke', 'black');
+                svg2.appendChild(line2);
+                x2 += cm_5_w_px;
+            };
+
+            var cm_1_w_px = Web_canvas_W / (Real_canvas_W / 1);
+            var cm_1_y1_px = 15;
+            var cm_1_y2_px = 20;
+
+            let x3 = 0;
+            while (x3 < Web_canvas_W) {
+                svg2 = document.getElementById('W-measure');
+                line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line2.setAttribute('x1', x3);
+                line2.setAttribute('y1', cm_1_y1_px);
+                line2.setAttribute('x2', x3);
+                line2.setAttribute('y2', cm_1_y2_px);
+                line2.setAttribute('stroke', 'black');
+                svg2.appendChild(line2);
+                x3 += cm_1_w_px;
+            };
+
+            var Web_canvas_H = $("#pattern-canvas").height();
+
+            if ($('#Size_sample').prop('checked') == true){
+                var Real_canvas_H = 50;
+            } else if ($('#Size_actual').prop('checked') == true) {
+                var Real_canvas_H = $('.length-select').val();
+                if (Real_canvas_H > 500) {
+                    Real_canvas_H = 500;
+                } else {}
+            } else{}
+
+            var length = (Web_canvas_W * Real_canvas_H) / Real_canvas_W;
+            $('#H-measure').attr('viewBox', '0 0 20 ' + length);
+            $('#H-measure').attr('height', length);
+
+            var cm_10_h_px = Web_canvas_H / (Real_canvas_H / 10);
+            var cm_10_x1_px = 0;
+            var cm_10_x2_px = 20;
+
+            svg1 = document.getElementById('H-measure');
+            line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line1.setAttribute('x1', cm_10_x1_px);
+            line1.setAttribute('y1', 0);
+            line1.setAttribute('x2', cm_10_x1_px);
+            line1.setAttribute('y2', Web_canvas_H);
+            line1.setAttribute('stroke', 'black');
+            svg1.appendChild(line1);
+
+            svg1 = document.getElementById('H-measure');
+            line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line1.setAttribute('x1', cm_10_x2_px);
+            line1.setAttribute('y1', 0);
+            line1.setAttribute('x2', cm_10_x2_px);
+            line1.setAttribute('y2', Web_canvas_H);
+            line1.setAttribute('stroke', 'black');
+            svg1.appendChild(line1);
+
+            let h_x = 0;
+            while (h_x < Web_canvas_H) {
+                svg1 = document.getElementById('H-measure');
+                line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line1.setAttribute('x1', cm_10_x1_px);
+                line1.setAttribute('y1', h_x);
+                line1.setAttribute('x2', cm_10_x2_px);
+                line1.setAttribute('y2', h_x);
+                line1.setAttribute('stroke', 'black');
+                svg1.appendChild(line1);
+                h_x += cm_10_h_px;
+            };
+
+            var cm_10_x_px = 1;
+            var cm_10_h_fontsize = 8;
+            var cm_10_h_text = 0;
+
+            let t2 = 0;
+            while (t2 < Web_canvas_H) {
+                svg1 = document.getElementById('H-measure');
+                line1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                line1.setAttribute('x', cm_10_x_px);
+                line1.setAttribute('y', t2 + 9);
+                line1.setAttribute('font-size', cm_10_h_fontsize);
+                line1.textContent = cm_10_h_text;
+                svg1.appendChild(line1);
+                cm_10_h_text += 10;
+                t2 += cm_10_h_px;
+            };
+
+            var cm_5_h_px = Web_canvas_H / (Real_canvas_H / 5);
+            var cm_5_x1_px = 10;
+            var cm_5_x2_px = 20;
+
+            let h_x2 = 0;
+            while (h_x2 < Web_canvas_H) {
+                svg1 = document.getElementById('H-measure');
+                line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line1.setAttribute('x1', cm_5_x1_px);
+                line1.setAttribute('y1', h_x2);
+                line1.setAttribute('x2', cm_5_x2_px);
+                line1.setAttribute('y2', h_x2);
+                line1.setAttribute('stroke', 'black');
+                svg1.appendChild(line1);
+                h_x2 += cm_5_h_px;
+            };
+
+            var cm_1_h_px = Web_canvas_H / (Real_canvas_H / 1);
+            var cm_1_x1_px = 17;
+            var cm_1_x2_px = 20;
+
+            let h_x3 = 0;
+            while (h_x3 < Web_canvas_H) {
+                svg1 = document.getElementById('H-measure');
+                line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line1.setAttribute('x1', cm_1_x1_px);
+                line1.setAttribute('y1', h_x3);
+                line1.setAttribute('x2', cm_1_x2_px);
+                line1.setAttribute('y2', h_x3);
+                line1.setAttribute('stroke', 'black');
+                svg1.appendChild(line1);
+                h_x3 += cm_1_h_px;
+            };
+        }
+
+
+        function getParam(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+
+
+        $(function(){
+        // 変数に要素を入れる
+        var open = $('.modal-open'),
+            close = $('.modal-close'),
+            container = $('.modal-container');
+
+        //開くボタンをクリックしたらモーダルを表示する
+        open.on('click',function(){ 
+            container.addClass('active');
+            return false;
+        });
+
+        //閉じるボタンをクリックしたらモーダルを閉じる
+        close.on('click',function(){  
+            container.removeClass('active');
+        });
+
+        //モーダルの外側をクリックしたらモーダルを閉じる
+        $(document).on('click',function(e) {
+            if(!$(e.target).closest('.modal-body').length) {
+            container.removeClass('active');
+            }
+        });
+        });
+    </script>
+    </body>
+</HTML>
